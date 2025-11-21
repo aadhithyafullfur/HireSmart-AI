@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+python-multipart
+numpy
+pandas
+scikit-learn
+joblib
+tensorflow
+gensim
+nltk
+pdfplumber
+python-docx
+pytesseract
+Pillow
+pdf2image
+python-magic
