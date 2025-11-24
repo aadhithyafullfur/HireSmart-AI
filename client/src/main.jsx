@@ -34,7 +34,7 @@ if (typeof chrome !== "undefined" && chrome?.runtime) {
     } catch {
       // Silently handle
     }
-    return false;
+    return true;
   });
 }
 

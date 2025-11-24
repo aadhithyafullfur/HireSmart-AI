@@ -9,6 +9,7 @@ export default function ResumeUpload() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [jobDescription, setJobDescription] = useState("");
 
   const uploadResume = async () => {
     if (!file) {
@@ -68,42 +69,63 @@ export default function ResumeUpload() {
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-12 text-center transition cursor-pointer ${
+        className={`border-2 border-dashed rounded-2xl p-8 text-center transition cursor-pointer flex flex-col h-[600px] ${
           dragActive
             ? "border-yellow-400 bg-yellow-500/10"
             : "border-yellow-500/30 hover:border-yellow-500/60 hover:bg-yellow-500/5"
         }`}
       >
-        <div className="text-5xl mb-4 text-yellow-400">📄</div>
-        <h3 className="text-2xl font-bold text-white mb-2">
-          Upload Your Resume
-        </h3>
-        <p className="text-gray-400 mb-6">
-          Drag and drop your file or click to browse (PDF, DOCX, TXT)
-        </p>
+        {/* Resume Upload Section - Top */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="text-5xl mb-4 text-yellow-400">📄</div>
+          <h3 className="text-2xl font-bold text-white mb-2">
+            Upload Your Resume
+          </h3>
+          <p className="text-gray-400 mb-6">
+            Drag and drop your file or click to browse (PDF, DOCX, TXT)
+          </p>
 
-        <label className="inline-block">
-          <input
-            type="file"
-            accept=".pdf,.docx,.doc,.txt"
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files?.[0]) {
-                setFile(e.target.files[0]);
-                setError(null);
-              }
-            }}
-          />
-          <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-3 rounded-lg font-semibold transition cursor-pointer inline-block shadow-lg hover:shadow-yellow-500/50">
-            Choose File
-          </span>
-        </label>
+          <label className="inline-block">
+            <input
+              type="file"
+              accept=".pdf,.docx,.doc,.txt"
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  setFile(e.target.files[0]);
+                  setError(null);
+                }
+              }}
+            />
+            <span className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black px-8 py-3 rounded-lg font-semibold transition cursor-pointer inline-block shadow-lg hover:shadow-yellow-500/50">
+              Choose File
+            </span>
+          </label>
 
-        {file && (
-          <div className="mt-4 text-sm text-yellow-400 font-medium">
-            Selected: {file.name}
+          {file && (
+            <div className="mt-4 text-sm text-yellow-400 font-medium">
+              Selected: {file.name}
+            </div>
+          )}
+        </div>
+
+        {/* Job Description Chat - Bottom */}
+        <div className="border-t border-yellow-500/30 pt-6">
+          <div className="flex flex-col h-32 bg-black/40 rounded-lg border border-yellow-500/20 overflow-hidden">
+            <textarea
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the job description here for better analysis..."
+              className="flex-1 bg-transparent text-white text-sm placeholder-gray-500 p-4 resize-none focus:outline-none border-none"
+            />
+            <div className="border-t border-yellow-500/20 px-4 py-2 flex items-center justify-between bg-black/60">
+              <span className="text-xs text-gray-500">
+                {jobDescription.length} characters
+              </span>
+              <span className="text-xs text-gray-500">Enter job description for enhanced matching</span>
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Error Message */}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-
+import Logo from "./Logo";
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -15,27 +15,24 @@ export default function Navbar() {
 
   return (
     <nav className="w-full bg-black border-b border-yellow-500/30 sticky top-0 z-40">
-      <div className="max-w-6xl mx-auto px-4 py-2.5 flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-yellow-500 rounded flex items-center justify-center">
-            <span className="text-black font-bold text-sm">R</span>
-          </div>
-          <h1 className="text-sm font-bold text-white">Resume AI</h1>
+      <div className="max-w-full mx-auto px-4 py-2 flex items-center justify-between">
+        {/* Logo - Top Left */}
+        <Link to="/dashboard" className="hover:opacity-80 transition flex-shrink-0 min-w-fit">
+          <Logo />
         </Link>
 
         {/* Navigation Links - Center */}
-        <div className="hidden lg:flex gap-12 items-center absolute left-1/2 transform -translate-x-1/2">
+        <div className="hidden md:flex gap-6 items-center flex-1 justify-center">
           <Link
             to="/dashboard"
-            className="text-sm text-gray-400 hover:text-white font-medium transition-colors duration-200 relative group"
+            className="text-xs text-gray-400 hover:text-white font-medium transition-colors duration-200 relative group whitespace-nowrap"
           >
             Dashboard
             <span className="absolute bottom-0 left-0 w-full h-0.5 bg-yellow-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
           </Link>
           <Link
             to="/history"
-            className="text-sm text-gray-400 hover:text-white font-medium transition-colors duration-200 relative group"
+            className="text-xs text-gray-400 hover:text-white font-medium transition-colors duration-200 relative group whitespace-nowrap"
           >
             History
             <span className="absolute bottom-0 left-0 w-full h-0.5 bg-yellow-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
@@ -49,9 +46,10 @@ export default function Navbar() {
             className="relative group flex items-center gap-2 px-4 py-2 rounded-lg bg-black border border-yellow-500/30 hover:border-yellow-500/60 text-white font-medium text-sm transition-all duration-200"
             title={user ? user.name || user.email : "Account"}
           >
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center text-black text-xs font-bold">
-              {user ? user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() : "U"}
-            </div>
+            <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="4" strokeWidth="1.5"/>
+              <path d="M 4 20 Q 4 14 12 14 Q 20 14 20 20" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
             <span className="hidden sm:inline text-sm">
               {user ? (user.name?.split(" ")[0] || "Account") : "Account"}
             </span>
