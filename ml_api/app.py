@@ -738,70 +738,143 @@ Return ONLY a valid JSON object:
         return {"error": f"Unexpected error: {str(e)}"}
 
 
+def extract_skills_from_text(text: str) -> list:
+    """
+    Extract skills from text using expanded keyword matching.
+    Avoids false positives like Java in JavaScript.
+    """
+    text_lower = text.lower()
+    found_skills = []
+    
+    # Expanded skills dictionary with better matching
+    # Order matters: check longer/more specific patterns first
+    skills_map = {
+        # Programming Languages (specific first to avoid collisions)
+        "TypeScript": ["typescript ", " typescript", "ts "],
+        "JavaScript": ["javascript", " js ", "nodejs", "node.js", "express"],
+        "Java": [" java", "java ", "spring"],  # Avoid "javascript" by checking with space after
+        "Python": ["python", " py ", "django", "flask", "pandas", "scipy"],
+        "C#": ["c# ", " c#", "csharp", "dotnet", ".net"],
+        "C++": ["c++ ", " c++", "cpp ", "cplusplus"],
+        "PHP": ["php ", " php"],
+        "Go": ["golang"],
+        "Rust": ["rust ", " rust"],
+        # Frontend
+        "React": ["react", "reactjs", "react.js"],
+        "Vue": ["vue", "vuejs"],
+        "Angular": ["angular", "angularjs"],
+        "Bootstrap": ["bootstrap"],
+        "Tailwind": ["tailwind", "tailwindcss"],
+        "HTML": ["html5", "html ", " html"],
+        "CSS": ["css3", "css ", "sass", "scss"],
+        # Backend & Databases
+        "SQL": ["sql", "mysql", "postgres", "postgresql", "oracle", "tsql"],
+        "MongoDB": ["mongodb", "mongo "],
+        "Firebase": ["firebase"],
+        "Redis": ["redis"],
+        "Elasticsearch": ["elasticsearch"],
+        # Cloud
+        "AWS": ["aws", "amazon", "ec2", "s3", "lambda"],
+        "Azure": ["azure", "microsoft azure"],
+        "Google Cloud": ["gcp", "google cloud", "cloud platform"],
+        # DevOps & Tools
+        "Docker": ["docker"],
+        "Kubernetes": ["kubernetes", "k8s"],
+        "Git": ["git", "github", "gitlab", "bitbucket"],
+        # APIs
+        "REST API": ["rest api", "restful"],
+        "GraphQL": ["graphql"],
+        # Data Science
+        "Machine Learning": ["machine learning", "ml engineer", "mlops"],
+        "TensorFlow": ["tensorflow"],
+        "PyTorch": ["pytorch"],
+        "Scikit-learn": ["scikit-learn", "sklearn"],
+        "Data Science": ["data science", "data analyst", "data engineering"],
+        # Practices
+        "DevOps": ["devops", "ci/cd", "cicd"],
+        "Linux": ["linux", "ubuntu", "centos"],
+        "Agile": ["agile", "scrum", "kanban"],
+        "Testing": ["junit", "pytest", "mocha", "jest"],
+        "CI/CD": ["ci/cd", "jenkins", "gitlab ci", "github actions"],
+        "Microservices": ["microservices"],
+        "Next.js": ["next.js", "nextjs"],
+    }
+    
+    for skill, keywords in skills_map.items():
+        for keyword in keywords:
+            if keyword in text_lower:
+                if skill not in found_skills:
+                    found_skills.append(skill)
+                break
+    
+    return found_skills
+
+
 def generate_ml_fallback_analysis(resume_text: str, job_description: str = "") -> Dict[str, Any]:
     """
     Fast fallback analysis using regex and keyword matching if Ollama fails.
+    More accurate skill matching and scoring.
     """
     try:
-        # Common skills keywords
-        common_skills = {
-            "Python": ["python", "py"],
-            "JavaScript": ["javascript", "js", "node"],
-            "React": ["react", "reactjs"],
-            "Java": ["java"],
-            "C++": ["c++", "cpp"],
-            "SQL": ["sql", "mysql", "postgres"],
-            "AWS": ["aws", "amazon"],
-            "Docker": ["docker"],
-            "Kubernetes": ["kubernetes", "k8s"],
-            "Git": ["git", "github", "gitlab"],
-            "REST API": ["rest", "api"],
-            "HTML": ["html"],
-            "CSS": ["css"],
-            "TypeScript": ["typescript", "ts"],
-        }
+        # Extract skills from both texts
+        resume_skills = extract_skills_from_text(resume_text)
+        job_skills = extract_skills_from_text(job_description) if job_description else []
         
-        # Extract skills from resume
-        resume_lower = resume_text.lower()
-        found_skills = []
-        for skill, keywords in common_skills.items():
-            for keyword in keywords:
-                if keyword in resume_lower:
-                    if skill not in found_skills:
-                        found_skills.append(skill)
-                    break
-        
-        # Extract job skills if job description provided
-        job_skills = []
-        if job_description:
-            job_lower = job_description.lower()
-            for skill, keywords in common_skills.items():
-                for keyword in keywords:
-                    if keyword in job_lower:
-                        if skill not in job_skills:
-                            job_skills.append(skill)
-                        break
-        
-        # Calculate match score
-        match_score = 0
+        # Calculate match score more accurately
         if job_skills:
-            matched = len([s for s in found_skills if s in job_skills])
-            match_score = int((matched / len(job_skills)) * 100) if job_skills else 0
+            # Match skills: count how many job required skills are in resume
+            matched_skills = [s for s in job_skills if s in resume_skills]
+            matched_count = len(matched_skills)
+            total_required = len(job_skills)
+            
+            # Score is percentage of required skills that candidate has
+            match_score = int((matched_count / total_required) * 100) if total_required > 0 else 0
         else:
-            match_score = min(len(found_skills) * 10, 100)  # Base score on number of skills
+            # No job description provided - use resume skills count as baseline
+            # Max 70% without specific job match
+            match_score = min(int(len(resume_skills) * 5), 70)
         
-        # Determine future skills (in job but not in resume)
-        future_skills = [s for s in job_skills if s not in found_skills] if job_skills else []
+        # Skills needed (in job but not in resume)
+        future_skills = [s for s in job_skills if s not in resume_skills] if job_skills else []
+        
+        # Project skills (in resume and ideally in job too)
+        project_skills = resume_skills
+        
+        # Experience level based on skill diversity
+        skill_count = len(resume_skills)
+        if skill_count >= 15:
+            experience_level = "Senior"
+        elif skill_count >= 10:
+            experience_level = "Mid-level"
+        elif skill_count >= 5:
+            experience_level = "Junior"
+        else:
+            experience_level = "Entry-level"
+        
+        # Experience alignment message
+        if job_skills:
+            if len(matched_skills) == len(job_skills):
+                experience_alignment = f"Excellent alignment - you have all {len(job_skills)} required skills"
+            elif len(matched_skills) / len(job_skills) >= 0.75:
+                experience_alignment = f"Strong alignment - you have {len(matched_skills)}/{len(job_skills)} required skills"
+            elif len(matched_skills) / len(job_skills) >= 0.5:
+                experience_alignment = f"Moderate alignment - you have {len(matched_skills)}/{len(job_skills)} required skills"
+            else:
+                experience_alignment = f"Needs improvement - you have {len(matched_skills)}/{len(job_skills)} required skills"
+        else:
+            experience_alignment = f"You have {len(resume_skills)} skills demonstrated"
+        
+        summary = f"Your Resume: {len(resume_skills)} skills | Job Requires: {len(job_skills)} skills | Match: {len(matched_skills) if job_skills else 0}/{len(job_skills) if job_skills else 0}"
         
         return {
             "success": True,
             "analysis": {
-                "skill_match_score": match_score,
-                "project_skills_implemented": found_skills,
+                "skill_match_score": max(0, min(100, match_score)),  # Ensure 0-100
+                "project_skills_implemented": project_skills,
                 "future_skills_required": future_skills,
-                "experience_alignment": "Match based on skills" if match_score >= 60 else "Partial match",
-                "experience_level": "Mid-level" if len(found_skills) >= 5 else "Junior",
-                "summary": f"Found {len(found_skills)} skills in resume. {len(future_skills)} skills needed for job."
+                "experience_alignment": experience_alignment,
+                "experience_level": experience_level,
+                "summary": summary
             }
         }
     except Exception as e:

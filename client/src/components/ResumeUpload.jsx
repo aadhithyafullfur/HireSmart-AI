@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { mlApi } from "../services/api";
 import Loader from "./Loader";
-import PredictionCard from "./PredictionCard";
+import JobMatchVisualization from "./JobMatchVisualization";
 
 export default function ResumeUpload() {
   const [file, setFile] = useState(null);
@@ -192,7 +192,7 @@ export default function ResumeUpload() {
 
       {/* Results */}
       {loading && <Loader />}
-      {result && <PredictionCard data={result} />}
+      {result && <JobMatchVisualization data={result} />}
     </div>
   );
 }
