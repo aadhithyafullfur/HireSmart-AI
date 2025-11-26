@@ -3,6 +3,7 @@ import io
 import os
 import json
 import re
+import requests
 from typing import List, Optional, Dict, Any
 from dotenv import load_dotenv
 
@@ -655,11 +656,11 @@ def call_ollama(resume_text: str, job_description: str = "") -> Dict[str, Any]:
     Falls back gracefully if Ollama is not available.
     """
     try:
-        import requests
-        
         OLLAMA_API_URL = "http://localhost:11434/api/generate"
-        OLLAMA_MODEL = "phi3"  # Fast model, good quality. Alternatives: llama3.1, qwen2, mistral
-        OLLAMA_TIMEOUT = 120
+        OLLAMA_MODEL = "tinyllama"  # Lightweight model (637MB) - works with limited RAM. Alternatives: orca-mini, neural-chat
+        OLLAMA_TIMEOUT = 300  # Increased to 5 minutes for tinyllama generation
+        
+        print(f"[Ollama] Calling {OLLAMA_MODEL} with 300s timeout...")
         
         # Create intelligent prompt - simplified for better JSON parsing
         if job_description:
@@ -772,11 +773,14 @@ async def analyze_resume_with_ollama(
     cleaned_text = clean_text(raw_text)
     
     # Call Ollama
+    print(f"[/analyze/resume-ollama] Starting Ollama analysis for {filename}")
     result = call_ollama(cleaned_text, job_description)
+    print(f"[/analyze/resume-ollama] Result: {result}")
     
     # If Ollama failed, return error but with helpful message
     if "error" in result:
         # Return 503 with the error message
+        print(f"[/analyze/resume-ollama] ERROR: {result['error']}")
         raise HTTPException(status_code=503, detail=result["error"])
     
     return {
@@ -784,7 +788,7 @@ async def analyze_resume_with_ollama(
         "resume_text": cleaned_text[:1000],
         "analysis": result.get("analysis", {}),
         "engine": "Ollama LLM",
-        "model": "phi3"
+        "model": "tinyllama"
     }
 
 
