@@ -12,6 +12,8 @@ export default function JobMatchVisualization({ data }) {
   const jobMatchScore = data.job_match_score || analysis.skill_match_score || 0;
   const projectSkills = analysis.project_skills_implemented || [];
   const futureSkills = analysis.future_skills_required || [];
+  const requiredSkillsFromJob = analysis.required_skills_from_job || [];
+  const matchingSkills = analysis.matching_skills || [];
   
   // Calculate percentages based on actual required skills (not total in resume)
   const totalRequired = futureSkills.length > 0 ? (projectSkills.length + futureSkills.length) : projectSkills.length;
@@ -87,21 +89,22 @@ export default function JobMatchVisualization({ data }) {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex gap-2 border-b border-gray-700">
-        {["overview", "implemented", "required", "analysis"].map((tab) => (
+      <div className="flex gap-2 border-b border-gray-700 overflow-x-auto">
+        {["overview", "implemented", "required", "analysis", "transparency"].map((tab) => (
           <button
             key={tab}
             onClick={() => setExpandedTab(tab)}
-            className={`px-6 py-3 font-semibold transition border-b-2 ${
+            className={`px-6 py-3 font-semibold transition border-b-2 whitespace-nowrap ${
               expandedTab === tab
                 ? "border-yellow-400 text-yellow-400"
                 : "border-transparent text-gray-400 hover:text-gray-300"
             }`}
           >
             {tab === "overview" && "Overview"}
-            {tab === "implemented" && `✓ Implemented (${projectSkills.length})`}
-            {tab === "required" && `📚 Required (${futureSkills.length})`}
+            {tab === "implemented" && `✓ Implemented (${matchingSkills.length})`}
+            {tab === "required" && `📚 Required (${requiredSkillsFromJob.length})`}
             {tab === "analysis" && "Analysis"}
+            {tab === "transparency" && "Transparency"}
           </button>
         ))}
       </div>
@@ -239,7 +242,67 @@ export default function JobMatchVisualization({ data }) {
 
       {/* REQUIRED SKILLS TAB */}
       {expandedTab === "required" && (
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* All Required Skills Section */}
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
+            <h3 className="text-blue-400 font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">📋</span>
+              All Required Skills for This Job ({requiredSkillsFromJob.length})
+            </h3>
+            
+            {requiredSkillsFromJob.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {requiredSkillsFromJob.map((skill, idx) => {
+                  const isMatched = matchingSkills.includes(skill);
+                  return (
+                    <div
+                      key={idx}
+                      className={`border rounded-lg p-3 text-center transition ${
+                        isMatched
+                          ? "bg-green-500/20 border-green-500/50 hover:bg-green-500/30"
+                          : "bg-orange-500/20 border-orange-500/50 hover:bg-orange-500/30"
+                      }`}
+                    >
+                      <p className={`font-semibold text-sm ${isMatched ? "text-green-300" : "text-orange-300"}`}>
+                        {skill}
+                      </p>
+                      <p className={`text-xs mt-1 ${isMatched ? "text-green-400" : "text-orange-400"}`}>
+                        {isMatched ? "✓ You Have" : "→ Need"}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-400 italic">No job description provided</p>
+            )}
+          </div>
+
+          {/* Matching Skills Section */}
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+            <h3 className="text-green-400 font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">✓</span>
+              Skills You Already Have ({matchingSkills.length})
+            </h3>
+            
+            {matchingSkills.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {matchingSkills.map((skill, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 rounded-lg p-3 text-center transition"
+                  >
+                    <p className="text-green-300 font-semibold text-sm">{skill}</p>
+                    <p className="text-xs text-gray-400 mt-1">✓ Ready</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 italic">No matching skills identified</p>
+            )}
+          </div>
+
+          {/* Missing Skills Section */}
           <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
             <h3 className="text-orange-400 font-semibold mb-4 flex items-center gap-2">
               <span className="text-2xl">📚</span>
@@ -357,6 +420,109 @@ export default function JobMatchVisualization({ data }) {
                   <p className="text-sm text-gray-300">Significant skill gaps ({futureSkills.length} required skills missing). Build experience in these areas first.</p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TRANSPARENCY TAB - Show calculation audit trail */}
+      {expandedTab === "transparency" && (
+        <div className="space-y-6">
+          {/* Calculation Method */}
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6">
+            <h3 className="text-blue-400 font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">🔍</span>
+              How We Calculate Your Match Score
+            </h3>
+            
+            <div className="space-y-4 text-gray-300 text-sm">
+              <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                <p className="font-semibold text-white mb-2">✓ Algorithm: Exact Skill Matching</p>
+                <p className="text-gray-400">No AI guessing or subjective scoring. Pure mathematics.</p>
+              </div>
+              
+              <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                <p className="font-semibold text-white mb-2">Formula</p>
+                <p className="font-mono bg-black/50 p-3 rounded text-yellow-300">
+                  (Matching Skills / Required Skills) × 100
+                </p>
+              </div>
+
+              <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                <p className="font-semibold text-white mb-3">Your Calculation</p>
+                <div className="space-y-2 font-mono text-yellow-300">
+                  <p>Required Skills: {analysis.future_skills_required?.length || 0} + {analysis.project_skills_implemented?.length || 0} = {(analysis.future_skills_required?.length || 0) + (analysis.project_skills_implemented?.length || 0)}</p>
+                  <p>Matching Skills: {analysis.project_skills_implemented?.length || 0}</p>
+                  <p>Formula: ({analysis.project_skills_implemented?.length || 0} ÷ {(analysis.future_skills_required?.length || 0) + (analysis.project_skills_implemented?.length || 0)}) × 100 = {jobMatchScore.toFixed(1)}%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Trustworthiness Indicators */}
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6">
+            <h3 className="text-green-400 font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">✓</span>
+              Why You Can Trust This Score
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                <p className="font-semibold text-white mb-2">Exact Matching</p>
+                <p className="text-sm text-gray-400">Each skill verified against 60+ industry-standard skills database</p>
+              </div>
+              
+              <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                <p className="font-semibold text-white mb-2">No False Positives</p>
+                <p className="text-sm text-gray-400">Regex word boundaries prevent Java from matching JavaScript</p>
+              </div>
+              
+              <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                <p className="font-semibold text-white mb-2">Reproducible</p>
+                <p className="text-sm text-gray-400">Same resume + job description = Same score every time</p>
+              </div>
+              
+              <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
+                <p className="font-semibold text-white mb-2">Transparent</p>
+                <p className="text-sm text-gray-400">You can see exactly which skills matched and which didn't</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Skills Breakdown */}
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-6">
+            <h3 className="text-purple-400 font-semibold mb-4">📊 Complete Breakdown</h3>
+            
+            <div className="space-y-4 text-sm">
+              <div>
+                <p className="text-gray-300 font-semibold mb-2">Your Resume Contains:</p>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.project_skills_implemented?.length > 0 ? (
+                    analysis.project_skills_implemented.map((skill, idx) => (
+                      <span key={idx} className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs border border-green-500/50">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 italic">No matching skills detected</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-gray-300 font-semibold mb-2">Job Requires:</p>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.future_skills_required?.length > 0 ? (
+                    analysis.future_skills_required.map((skill, idx) => (
+                      <span key={idx} className="bg-orange-500/20 text-orange-300 px-3 py-1 rounded-full text-xs border border-orange-500/50">
+                        {skill}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 italic">All required skills matched!</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

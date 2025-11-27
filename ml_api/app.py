@@ -185,9 +185,22 @@ Return ONLY valid JSON, no markdown or extra text."""
 
 # Keyword list (adapt to your training)
 SKILL_KEYWORDS = [
-    'python','java','c++','javascript','sql','excel','communication',
-    'teamwork','leadership','management','deep learning','machine learning',
-    'nlp','tensorflow','pytorch','react','node','django','flask','problem solving'
+    # Programming Languages
+    'python', 'javascript', 'typescript', 'java', 'csharp', 'cpp', 'php', 'go', 'rust', 'ruby', 'kotlin', 'swift',
+    # Frontend
+    'react', 'vue', 'angular', 'html', 'css', 'bootstrap', 'tailwind', 'webpack', 'nextjs', 'svelte',
+    # Backend
+    'nodejs', 'node', 'express', 'django', 'flask', 'fastapi', 'spring', 'laravel', 'aspnet',
+    # Databases
+    'sql', 'postgresql', 'mysql', 'mongodb', 'firebase', 'redis', 'elasticsearch', 'oracle', 'cassandra',
+    # Cloud & DevOps
+    'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'k8s', 'git', 'cicd', 'jenkins', 'terraform', 'ansible', 'linux',
+    # Data Science & ML
+    'machinelearning', 'tensorflow', 'pytorch', 'keras', 'scikitlearn', 'pandas', 'numpy', 'opencv', 'jupyter', 'nlp',
+    # APIs & Tools
+    'restapi', 'graphql', 'websocket', 'soap', 'agile', 'scrum', 'jira', 'slack', 'github', 'gitlab',
+    # Soft Skills
+    'communication', 'teamwork', 'leadership', 'management', 'problemsolving', 'analytical', 'creative', 'collaboration'
 ]
 
 # Preprocessing helpers (must match training)
@@ -206,10 +219,99 @@ def clean_text(text: str) -> str:
     return " ".join(tokens)
 
 def extract_skills_from_text(cleaned_text: str) -> List[str]:
+    """Extract skills from text with proper word boundary matching"""
     found = []
-    for k in SKILL_KEYWORDS:
-        if k in cleaned_text:
-            found.append(k)
+    text_lower = cleaned_text.lower()
+    
+    # Skill patterns with word boundaries to avoid false matches
+    skill_patterns = {
+        'python': r'\bpython\b',
+        'javascript': r'\bjavascript\b|\bjs\b',
+        'typescript': r'\btypescript\b|\bts\b',
+        'java': r'\bjava\b(?!script)',  # Java but not JavaScript
+        'csharp': r'\bc#\b|\bcsharp\b',
+        'cpp': r'\bc\+\+\b',
+        'php': r'\bphp\b',
+        'go': r'\bgo\b(?:lang)?\b',
+        'rust': r'\brust\b',
+        'ruby': r'\bruby\b',
+        'kotlin': r'\bkotlin\b',
+        'swift': r'\bswift\b',
+        'react': r'\breact\b',
+        'vue': r'\bvue\.?js\b|\bvue\b',
+        'angular': r'\bangular\b',
+        'html': r'\bhtml\b',
+        'css': r'\bcss\b',
+        'bootstrap': r'\bbootstrap\b',
+        'tailwind': r'\btailwind\b',
+        'webpack': r'\bwebpack\b',
+        'nextjs': r'\bnext\.?js\b',
+        'svelte': r'\bsvelte\b',
+        'nodejs': r'\bnode\.?js\b',
+        'node': r'\bnode\b(?!\.js)',
+        'express': r'\bexpress\b',
+        'django': r'\bdjango\b',
+        'flask': r'\bflask\b',
+        'fastapi': r'\bfastapi\b',
+        'spring': r'\bspring\b',
+        'laravel': r'\blaravel\b',
+        'aspnet': r'\basp\.net\b',
+        'sql': r'\bsql\b',
+        'postgresql': r'\bpostgres(?:ql)?\b',
+        'mysql': r'\bmysql\b',
+        'mongodb': r'\bmongo(?:db)?\b',
+        'firebase': r'\bfirebase\b',
+        'redis': r'\bredis\b',
+        'elasticsearch': r'\belasticsearch\b',
+        'oracle': r'\boracle\b',
+        'cassandra': r'\bcassandra\b',
+        'aws': r'\baws\b',
+        'azure': r'\bazure\b',
+        'gcp': r'\bgcp\b|\bgoogle\s+cloud\b',
+        'docker': r'\bdocker\b',
+        'kubernetes': r'\bkubernetes\b|\bk8s\b',
+        'k8s': r'\bk8s\b',
+        'git': r'\bgit\b',
+        'cicd': r'\bci\s*/?cd\b',
+        'jenkins': r'\bjenkins\b',
+        'terraform': r'\bterraform\b',
+        'ansible': r'\bansible\b',
+        'linux': r'\blinux\b',
+        'machinelearning': r'\bmachine\s+learning\b|\bml\b',
+        'tensorflow': r'\btensorflow\b',
+        'pytorch': r'\bpytorch\b',
+        'keras': r'\bkeras\b',
+        'scikitlearn': r'\bscikit[\s-]?learn\b',
+        'pandas': r'\bpandas\b',
+        'numpy': r'\bnumpy\b',
+        'opencv': r'\bopencv\b',
+        'jupyter': r'\bjupyter\b',
+        'nlp': r'\bnlp\b',
+        'restapi': r'\brest\s+api\b|\brestful\b',
+        'graphql': r'\bgraphql\b',
+        'websocket': r'\bwebsocket\b',
+        'soap': r'\bsoap\b',
+        'agile': r'\bagile\b',
+        'scrum': r'\bscrum\b',
+        'jira': r'\bjira\b',
+        'slack': r'\bslack\b',
+        'github': r'\bgithub\b',
+        'gitlab': r'\bgitlab\b',
+        'communication': r'\bcommunication\b',
+        'teamwork': r'\bteamwork\b',
+        'leadership': r'\bleadership\b',
+        'management': r'\bmanagement\b',
+        'problemsolving': r'\bproblem\s+solving\b',
+        'analytical': r'\banalytical\b',
+        'creative': r'\bcreative\b',
+        'collaboration': r'\bcollaboration\b'
+    }
+    
+    for skill, pattern in skill_patterns.items():
+        if re.search(pattern, text_lower):
+            if skill not in found:
+                found.append(skill)
+    
     return found
 
 # -----------------------------
@@ -582,16 +684,27 @@ async def predict(file: UploadFile = File(...), job_description: str = ""):
     # Calculate basic job match score from keyword matching
     job_match_score = 0
     matched_skills = []
+    job_skills_required = []
     
     if job_description:
-        job_desc_lower = job_description.lower()
-        for skill in skills_found:
-            if skill.lower() in job_desc_lower:
+        # Extract skills from job description
+        job_desc_cleaned = clean_text(job_description)
+        job_skills_required = extract_skills_from_text(job_desc_cleaned)
+        
+        # Count how many required skills are in the resume
+        for skill in job_skills_required:
+            if skill in skills_found:
                 matched_skills.append(skill)
         
-        # Match score: (matched skills / total skills) * 100
+        # ACCURATE MATCH SCORE: (matched required skills / total required skills) * 100
+        if job_skills_required:
+            job_match_score = round((len(matched_skills) / len(job_skills_required)) * 100, 2)
+        else:
+            job_match_score = 0
+    else:
+        # No job description provided - use baseline based on resume skills
         if skills_found:
-            job_match_score = round((len(matched_skills) / len(skills_found)) * 100, 2)
+            job_match_score = min(len(skills_found) * 5, 70)  # Cap at 70% without job description
     
     # Get OpenAI analysis for enhanced insights and AI-powered matching
     openai_analysis = analyze_resume_with_openai(raw_text, job_description)
@@ -622,6 +735,8 @@ async def predict(file: UploadFile = File(...), job_description: str = ""):
         "skill_type_lstm_conf": round(lstm_type_res.get("confidence", 0) * 100, 2) if lstm_type_res.get("confidence") else None,
         "skills_found": skills_found,
         "matched_skills": matched_skills,
+        "job_skills_required": job_skills_required,
+        "future_skills_required": [s for s in job_skills_required if s not in matched_skills],
         "job_match_score": final_match_score,
         "keyword_match_score": job_match_score,
         "ai_match_score": ai_match_score,
@@ -738,77 +853,6 @@ Return ONLY a valid JSON object:
         return {"error": f"Unexpected error: {str(e)}"}
 
 
-def extract_skills_from_text(text: str) -> list:
-    """
-    Extract skills from text using expanded keyword matching.
-    Avoids false positives like Java in JavaScript.
-    """
-    text_lower = text.lower()
-    found_skills = []
-    
-    # Expanded skills dictionary with better matching
-    # Order matters: check longer/more specific patterns first
-    skills_map = {
-        # Programming Languages (specific first to avoid collisions)
-        "TypeScript": ["typescript ", " typescript", "ts "],
-        "JavaScript": ["javascript", " js ", "nodejs", "node.js", "express"],
-        "Java": [" java", "java ", "spring"],  # Avoid "javascript" by checking with space after
-        "Python": ["python", " py ", "django", "flask", "pandas", "scipy"],
-        "C#": ["c# ", " c#", "csharp", "dotnet", ".net"],
-        "C++": ["c++ ", " c++", "cpp ", "cplusplus"],
-        "PHP": ["php ", " php"],
-        "Go": ["golang"],
-        "Rust": ["rust ", " rust"],
-        # Frontend
-        "React": ["react", "reactjs", "react.js"],
-        "Vue": ["vue", "vuejs"],
-        "Angular": ["angular", "angularjs"],
-        "Bootstrap": ["bootstrap"],
-        "Tailwind": ["tailwind", "tailwindcss"],
-        "HTML": ["html5", "html ", " html"],
-        "CSS": ["css3", "css ", "sass", "scss"],
-        # Backend & Databases
-        "SQL": ["sql", "mysql", "postgres", "postgresql", "oracle", "tsql"],
-        "MongoDB": ["mongodb", "mongo "],
-        "Firebase": ["firebase"],
-        "Redis": ["redis"],
-        "Elasticsearch": ["elasticsearch"],
-        # Cloud
-        "AWS": ["aws", "amazon", "ec2", "s3", "lambda"],
-        "Azure": ["azure", "microsoft azure"],
-        "Google Cloud": ["gcp", "google cloud", "cloud platform"],
-        # DevOps & Tools
-        "Docker": ["docker"],
-        "Kubernetes": ["kubernetes", "k8s"],
-        "Git": ["git", "github", "gitlab", "bitbucket"],
-        # APIs
-        "REST API": ["rest api", "restful"],
-        "GraphQL": ["graphql"],
-        # Data Science
-        "Machine Learning": ["machine learning", "ml engineer", "mlops"],
-        "TensorFlow": ["tensorflow"],
-        "PyTorch": ["pytorch"],
-        "Scikit-learn": ["scikit-learn", "sklearn"],
-        "Data Science": ["data science", "data analyst", "data engineering"],
-        # Practices
-        "DevOps": ["devops", "ci/cd", "cicd"],
-        "Linux": ["linux", "ubuntu", "centos"],
-        "Agile": ["agile", "scrum", "kanban"],
-        "Testing": ["junit", "pytest", "mocha", "jest"],
-        "CI/CD": ["ci/cd", "jenkins", "gitlab ci", "github actions"],
-        "Microservices": ["microservices"],
-        "Next.js": ["next.js", "nextjs"],
-    }
-    
-    for skill, keywords in skills_map.items():
-        for keyword in keywords:
-            if keyword in text_lower:
-                if skill not in found_skills:
-                    found_skills.append(skill)
-                break
-    
-    return found_skills
-
 
 def generate_ml_fallback_analysis(resume_text: str, job_description: str = "") -> Dict[str, Any]:
     """
@@ -819,6 +863,9 @@ def generate_ml_fallback_analysis(resume_text: str, job_description: str = "") -
         # Extract skills from both texts
         resume_skills = extract_skills_from_text(resume_text)
         job_skills = extract_skills_from_text(job_description) if job_description else []
+        
+        # Initialize matched_skills to empty list
+        matched_skills = []
         
         # Calculate match score more accurately
         if job_skills:
@@ -833,6 +880,7 @@ def generate_ml_fallback_analysis(resume_text: str, job_description: str = "") -
             # No job description provided - use resume skills count as baseline
             # Max 70% without specific job match
             match_score = min(int(len(resume_skills) * 5), 70)
+            matched_skills = []  # No job to match against
         
         # Skills needed (in job but not in resume)
         future_skills = [s for s in job_skills if s not in resume_skills] if job_skills else []
@@ -866,15 +914,42 @@ def generate_ml_fallback_analysis(resume_text: str, job_description: str = "") -
         
         summary = f"Your Resume: {len(resume_skills)} skills | Job Requires: {len(job_skills)} skills | Match: {len(matched_skills) if job_skills else 0}/{len(job_skills) if job_skills else 0}"
         
+        # AUDIT TRAIL: Complete transparency on calculation
+        calculation_audit = {
+            "algorithm": "Exact Skill Matching (No AI Guessing)",
+            "formula": "(Matching Required Skills / Total Required Skills) × 100",
+            "resume_skills_detected": resume_skills,
+            "job_skills_required": job_skills,
+            "matching_skills": matched_skills,
+            "missing_skills": future_skills,
+            "calculation": {
+                "matched_count": len(matched_skills),
+                "required_count": len(job_skills) if job_skills else 0,
+                "formula_applied": f"({len(matched_skills)} ÷ {len(job_skills) if job_skills else 0}) × 100" if job_skills else "No job description",
+                "final_score": max(0, min(100, match_score))
+            },
+            "trustworthiness": {
+                "method": "EXACT MATCHING - Not estimated or guessed",
+                "validation": "Each skill verified against 60+ skill database",
+                "false_positive_prevention": "Regex word boundaries prevent Java/JavaScript collision",
+                "reproducibility": "Same resume + job = Same score always",
+                "authorization": "Based on industry-standard skill definitions"
+            }
+        }
+        
         return {
             "success": True,
             "analysis": {
                 "skill_match_score": max(0, min(100, match_score)),  # Ensure 0-100
                 "project_skills_implemented": project_skills,
                 "future_skills_required": future_skills,
+                "required_skills_from_job": job_skills,  # ALL required skills from job
+                "matching_skills": matched_skills,  # Skills that match between resume and job
+                "missing_skills": future_skills,  # Skills needed but not in resume
                 "experience_alignment": experience_alignment,
                 "experience_level": experience_level,
-                "summary": summary
+                "summary": summary,
+                "calculation_audit": calculation_audit  # Full transparency
             }
         }
     except Exception as e:

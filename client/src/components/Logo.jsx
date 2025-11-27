@@ -44,8 +44,8 @@ export default function Logo() {
       </svg>
       
       <div className="flex items-baseline gap-0">
-        <h1 className="text-lg font-black text-yellow-400 bg-black px-2 py-0.5 rounded" style={{letterSpacing: '0.05em'}}>RESUME</h1>
-        <h1 className="text-lg font-black text-yellow-400 bg-black px-2 py-0.5 rounded" style={{letterSpacing: '0.05em'}}>ANALYZER</h1>
+        <h1 className="text-lg font-black text-yellow-400 bg-black px-2 py-0.5 rounded" style={{letterSpacing: '0.05em'}}>HIRESMART</h1>
+        <h1 className="text-lg font-black text-yellow-400 bg-black px-2 py-0.5 rounded" style={{letterSpacing: '0.05em'}}>AI</h1>
       </div>
     </div>
   );

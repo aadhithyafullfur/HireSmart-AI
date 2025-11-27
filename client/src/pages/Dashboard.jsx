@@ -10,7 +10,7 @@ export default function Dashboard() {
           {/* Header Section */}
           <div className="mb-16 text-center">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 bg-clip-text text-transparent mb-4">
-              AI Resume Analyzer
+              HireSmart AI
             </h1>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
               Upload your resume and get instant AI-powered analysis. Improve your
